@@ -7,8 +7,6 @@
 #pragma comment (lib, "Ws2_32.lib")
 #endif // __WINSOCKS_H_INCLUDED__ 
 
-#include "Debug.h"
-
 #define DEFAULT_BUFFER_LENGTH 65536
 
 

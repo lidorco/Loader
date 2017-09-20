@@ -1,5 +1,6 @@
 
 #include "TcpListener.h"
+#include "Debug.h"
 
 #ifndef __STRINGS_H_INCLUDED__
 #define __STRINGS_H_INCLUDED__

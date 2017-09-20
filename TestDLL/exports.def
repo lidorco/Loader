@@ -1,0 +1,5 @@
+LIBRARY testdll
+DESCRIPTION "testdll"
+EXPORTS
+   print @1
+   add @2
