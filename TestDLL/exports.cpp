@@ -15,6 +15,12 @@ __declspec(dllexport) int add(int a, int b)
 	return a + b;
 }
 
+__declspec(dllexport) int multiplication(int a, int b)
+{
+	std::cout << "TestDll::multiplication Running successfully" << std::endl;
+	return a * b;
+}
+
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 {
