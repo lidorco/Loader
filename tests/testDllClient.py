@@ -5,7 +5,7 @@ s = socket.socket(socket.AF_INET ,socket.SOCK_STREAM)
 
 s.connect(("localhost", 9999))
 
-dll_file = open(r"Debug/TestDll.dll", 'rb')
+dll_file = open(r"bin/Debug/TestDll.dll", 'rb')
 
 
 binary_dll = dll_file.read()
