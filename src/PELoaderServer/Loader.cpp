@@ -100,7 +100,7 @@ int Loader::LoadSections()
 			continue;
 		}
 
-		memcpy((void*)(allocated_base_addr_ + current_section.VirtualAddress),
+		CopyMemory((PVOID)(allocated_base_addr_ + current_section.VirtualAddress),
 			pe_file_->pe_raw + current_section.PointerToRawData,
 			current_section.SizeOfRawData);
 	}

@@ -21,13 +21,13 @@ PeFile* PeDeserializer::Deserialize()
 
 bool PeDeserializer::DosHeaderDeserialize()
 {
-	memcpy(&(pe_file_->dos_header.e_magic), pe_file_->pe_raw, sizeof(pe_file_->dos_header));
+	CopyMemory(&(pe_file_->dos_header.e_magic), pe_file_->pe_raw, sizeof(pe_file_->dos_header));
 	return true;
 }
 
 bool PeDeserializer::NtHeaderDeserialize()
 {
-	memcpy(&(pe_file_->nt_header.Signature), 
+	CopyMemory(&(pe_file_->nt_header.Signature),
 		pe_file_->pe_raw + pe_file_->dos_header.e_lfanew, sizeof(pe_file_->nt_header.Signature));
 	this->FileHeaderDeserialize();
 	this->OptionalHeaderDeserialize();
@@ -36,7 +36,7 @@ bool PeDeserializer::NtHeaderDeserialize()
 
 bool PeDeserializer::FileHeaderDeserialize()
 {
-	memcpy(&(pe_file_->nt_header.FileHeader),
+	CopyMemory(&(pe_file_->nt_header.FileHeader),
 		pe_file_->pe_raw + pe_file_->dos_header.e_lfanew + sizeof(pe_file_->nt_header.Signature),
 		sizeof(pe_file_->nt_header.FileHeader));
 	pe_file_->number_of_sections = pe_file_->nt_header.FileHeader.NumberOfSections;
@@ -46,7 +46,7 @@ bool PeDeserializer::FileHeaderDeserialize()
 
 bool PeDeserializer::OptionalHeaderDeserialize()
 {
-	memcpy(&(pe_file_->nt_header.OptionalHeader), 
+	CopyMemory(&(pe_file_->nt_header.OptionalHeader),
 		pe_file_->pe_raw + pe_file_->dos_header.e_lfanew + sizeof(pe_file_->nt_header.Signature) 
 		+ sizeof(pe_file_->nt_header.FileHeader),
 		pe_file_->nt_header.FileHeader.SizeOfOptionalHeader);
@@ -57,7 +57,7 @@ bool PeDeserializer::SectionsHeadersDeserialize()
 {
 	for (int i = 0; i < pe_file_->number_of_sections; ++i) 
 	{
-		memcpy(&(pe_file_->sections_headers[i]),
+		CopyMemory(&(pe_file_->sections_headers[i]),
 			pe_file_->pe_raw + pe_file_->dos_header.e_lfanew + sizeof(pe_file_->nt_header.Signature) +
 			sizeof(pe_file_->nt_header.FileHeader) + pe_file_->nt_header.FileHeader.SizeOfOptionalHeader +
 			i * sizeof(IMAGE_SECTION_HEADER),
