@@ -3,7 +3,7 @@
 #include "TcpListener.h"
 #include "PeFile.h"
 #include "PeDeserializer.h"
-#include "Loader.h"
+#include "LocalDllLoader.h"
 
 Debug logger;
 
@@ -26,7 +26,7 @@ int main()
 	PeDeserializer* deserializer = new PeDeserializer(raw_module, some_pe_file);
 	some_pe_file = deserializer->Deserialize();
 
-	Loader* loader = new Loader(some_pe_file);
+	LocalDllLoader* loader = new LocalDllLoader(some_pe_file);
 	loader->Load();
 	loader->Attach();
 	

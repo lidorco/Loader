@@ -1,15 +1,15 @@
 
-#include "Loader.h"
+#include "LocalDllLoader.h"
 #include "Debug.h"
 
-Loader::Loader(PeFile* pe_obj)
+LocalDllLoader::LocalDllLoader(PeFile* pe_obj)
 {
-	LOG("Loader created");
+	LOG("LocalDllLoader created");
 	allocated_base_addr_ = NULL;
 	pe_file_ = pe_obj;
 }
 
-int Loader::Load()
+int LocalDllLoader::Load()
 {
 	AllocateMemory();
 	LoadSections();
@@ -19,14 +19,14 @@ int Loader::Load()
 	return 0;
 }
 
-int Loader::Attach()
+int LocalDllLoader::Attach()
 {
 	DllEntryProc entry = (DllEntryProc)(allocated_base_addr_ + pe_file_->nt_header.OptionalHeader.AddressOfEntryPoint);
 	(*entry)((HINSTANCE)allocated_base_addr_, DLL_PROCESS_ATTACH, 0);
 	return 0;
 }
 
-PDWORD Loader::GetLoudedFunctionByName(char* func_name)
+PDWORD LocalDllLoader::GetLoudedFunctionByName(char* func_name)
 {
 	IMAGE_DATA_DIRECTORY exports_data_directory =
 		pe_file_->nt_header.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
@@ -61,7 +61,7 @@ PDWORD Loader::GetLoudedFunctionByName(char* func_name)
 	return (PDWORD)current_function_address;;
 }
 
-int Loader::AllocateMemory()
+int LocalDllLoader::AllocateMemory()
 {
 	LPVOID tmp_base_addr_ptr = VirtualAlloc(&(pe_file_->nt_header.OptionalHeader.ImageBase),
 		pe_file_->nt_header.OptionalHeader.SizeOfImage, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -73,14 +73,14 @@ int Loader::AllocateMemory()
 	}
 	else
 	{
-		LOG("Couldn't allocate ImageBase in Loader::AllocateMemory : " + std::to_string(GetLastError())
+		LOG("Couldn't allocate ImageBase in LocalDllLoader::AllocateMemory : " + std::to_string(GetLastError())
 		+ " trying random address");
 
 		allocated_base_addr_ = (DWORD)VirtualAlloc(NULL, pe_file_->nt_header.OptionalHeader.SizeOfImage,
 			MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 		if (!allocated_base_addr_)
 		{
-			LOG("Error occur in Loader::AllocateMemory : " + std::to_string(GetLastError()));
+			LOG("Error occur in LocalDllLoader::AllocateMemory : " + std::to_string(GetLastError()));
 			return GetLastError();
 		}
 
@@ -89,7 +89,7 @@ int Loader::AllocateMemory()
 	}
 }
 
-int Loader::LoadSections()
+int LocalDllLoader::LoadSections()
 {
 	for (int i = 0; i < pe_file_->number_of_sections; i++)
 	{
@@ -107,7 +107,7 @@ int Loader::LoadSections()
 	return 0;
 }
 
-int Loader::HandleRelocations()
+int LocalDllLoader::HandleRelocations()
 {
 	if (allocated_base_addr_ == pe_file_->nt_header.OptionalHeader.ImageBase)
 	{
@@ -183,7 +183,7 @@ int Loader::HandleRelocations()
 	return 0;
 }
 
-int Loader::ResolveImports()
+int LocalDllLoader::ResolveImports()
 {
 	IMAGE_DATA_DIRECTORY imports_data_directory =
 		pe_file_->nt_header.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
@@ -239,7 +239,7 @@ int Loader::ResolveImports()
 	return 0;
 }
 
-int Loader::ProtectMemory()
+int LocalDllLoader::ProtectMemory()
 {
 	PDWORD old_protect = new DWORD;
 	for (int i = 0; i < pe_file_->number_of_sections; i++)
@@ -301,7 +301,7 @@ int Loader::ProtectMemory()
 	return 0;
 }
 
-DWORD Loader::GetImportedFunctionAddress(char* module_name, char* func_name)
+DWORD LocalDllLoader::GetImportedFunctionAddress(char* module_name, char* func_name)
 {
 	HINSTANCE get_proc_id_dll = LoadLibraryA(module_name);
 	if (!get_proc_id_dll)

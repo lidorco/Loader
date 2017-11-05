@@ -18,9 +18,6 @@
     <ClInclude Include="Debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Loader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PeDeserializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -30,12 +27,12 @@
     <ClInclude Include="TcpListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LocalDllLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Debug.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
@@ -45,6 +42,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TcpListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalDllLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

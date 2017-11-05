@@ -5,10 +5,10 @@
 typedef BOOL(WINAPI *DllEntryProc)(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
 
 
-class Loader {
+class LocalDllLoader {
 
 public:
-	Loader(PeFile*);
+	LocalDllLoader(PeFile*);
 	int Load(); 
 	int Attach();
 	PDWORD GetLoudedFunctionByName(char*);

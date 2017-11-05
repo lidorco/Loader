@@ -116,14 +116,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Debug.h" />
-    <ClInclude Include="Loader.h" />
+    <ClInclude Include="LocalDllLoader.h" />
     <ClInclude Include="PeDeserializer.h" />
     <ClInclude Include="PeFile.h" />
     <ClInclude Include="TcpListener.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Debug.cpp" />
-    <ClCompile Include="Loader.cpp" />
+    <ClCompile Include="LocalDllLoader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PeDeserializer.cpp" />
     <ClCompile Include="TcpListener.cpp" />
