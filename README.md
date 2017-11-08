@@ -5,8 +5,8 @@ Load a dll file received from the network, enabling to run the dll exports funct
 The main goal of this project is for an educational purpose, and to practice cpp and windows.
 
 ### Prerequisites
-Visual Studio 2015
-Python
+* Visual Studio 2015
+* Python
 
 ## Compile and Deployment:
 Currently, this project load only dll on x86 process. So you need to make sure that the solution platform is x86.
@@ -22,3 +22,4 @@ Any contribution is welcome =]
 ## Futher reading
 https://www.joachim-bauch.de/tutorials/loading-a-dll-from-memory/
 https://www.codeproject.com/Articles/12532/Inject-your-code-to-a-Portable-Executable-file
+https://www.codeproject.com/Tips/139349/Getting-the-address-of-a-function-in-a-DLL-loaded

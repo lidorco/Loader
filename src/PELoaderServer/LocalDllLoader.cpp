@@ -118,7 +118,7 @@ int LocalDllLoader::HandleRelocations()
 	DWORD delta = allocated_base_addr_ - pe_file_->nt_header.OptionalHeader.ImageBase;
 	LOG("Relocation delta is : " + std::to_string(delta));
 
-	for (int i = 0; i < pe_file_->number_of_sections; i++)
+	for (int i = 0; i < pe_file_->number_of_sections; i++) // find relocation section
 	{
 		IMAGE_SECTION_HEADER current_section = pe_file_->sections_headers[i];
 		if (strcmp((const char*)current_section.Name, ".reloc") != 0)
