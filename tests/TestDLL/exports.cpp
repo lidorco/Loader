@@ -21,9 +21,19 @@ __declspec(dllexport) int multiplication(int a, int b)
 	return a * b;
 }
 
+__declspec(dllexport) void inc()
+{
+	int input = 0;
+	std::cout << "TestDll::inc Running successfully. please enter a number:" << std::endl;
+	std::cin >> input;
+	std::cout << input << "+1=" << input++<<std::endl;
+	return;
+}
+
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 {
+	std::cout << "TestDll::DllMain Called" << std::endl;
 	switch (fdwReason)
 	{
 	case DLL_PROCESS_ATTACH:

@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\RemoteProcess">
+      <UniqueIdentifier>{5fb9e324-f0bf-4a0f-aadc-ab0e70426bfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\RemoteProcess">
+      <UniqueIdentifier>{d18011f3-cef3-48da-9b13-3ad084e91c57}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Debug.h">
@@ -30,6 +36,12 @@
     <ClInclude Include="LocalDllLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RemoteDllLoader.h">
+      <Filter>Header Files\RemoteProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="RemoteModules.h">
+      <Filter>Header Files\RemoteProcess</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Debug.cpp">
@@ -46,6 +58,12 @@
     </ClCompile>
     <ClCompile Include="LocalDllLoader.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RemoteModules.cpp">
+      <Filter>Source Files\RemoteProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="RemoteDllLoader.cpp">
+      <Filter>Source Files\RemoteProcess</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

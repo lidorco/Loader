@@ -4,6 +4,8 @@
 #include "PeFile.h"
 #include "PeDeserializer.h"
 #include "LocalDllLoader.h"
+#include "RemoteDllLoader.h"
+
 
 Debug logger;
 
@@ -25,20 +27,12 @@ int main()
 	PeFile* some_pe_file = new PeFile;
 	PeDeserializer* deserializer = new PeDeserializer(raw_module, some_pe_file);
 	some_pe_file = deserializer->Deserialize();
-
-	LocalDllLoader* loader = new LocalDllLoader(some_pe_file);
+	
+	int process_id = 8864;
+	RemoteDllLoader* loader = new RemoteDllLoader(process_id, some_pe_file);
 	loader->Load();
 	loader->Attach();
-	
-	PDWORD print_func = loader->GetLoudedFunctionByName("print");
-	PRINT printImportedFunc = (PRINT)print_func;
-	printImportedFunc();
-	ADD addImportedFunc = (ADD)loader->GetLoudedFunctionByName("add");
-	int ret = addImportedFunc(8, 2);
-	LOG("addImportedFunc return: " + std::to_string(ret));
-	MULT multImportedFunc = (MULT)loader->GetLoudedFunctionByName("multiplication");
-	ret = multImportedFunc(8, 2);
-	LOG("multImportedFunc return: " + std::to_string(ret));
+	loader->CallLoudedFunctionByName("inc");
 
 	LOG("main ended");
 	return 0;
