@@ -19,13 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0D210F19-A071-443C-A4D4-37DF5A94A67A}</ProjectGuid>
-    <RootNamespace>PELoaderServer</RootNamespace>
+    <ProjectGuid>{53E385AA-BC97-4D66-8476-A3545380C92F}</ProjectGuid>
+    <RootNamespace>CommandlineArguments</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -77,9 +77,6 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -115,22 +112,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Debug.h" />
-    <ClInclude Include="LocalDllLoader.h" />
-    <ClInclude Include="PeDeserializer.h" />
-    <ClInclude Include="PeFile.h" />
-    <ClInclude Include="RemoteDllLoader.h" />
-    <ClInclude Include="RemoteModules.h" />
-    <ClInclude Include="TcpListener.h" />
+    <ProjectReference Include="..\..\tests\TestDLL\TestDLL.vcxproj">
+      <Project>{eb16b4bb-7b80-4cb8-841e-9e71ae3b0d9a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\PELoaderServer\PELoaderServer.vcxproj">
+      <Project>{0d210f19-a071-443c-a4d4-37df5a94a67a}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Debug.cpp" />
-    <ClCompile Include="LocalDllLoader.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="PeDeserializer.cpp" />
-    <ClCompile Include="RemoteDllLoader.cpp" />
-    <ClCompile Include="RemoteModules.cpp" />
-    <ClCompile Include="TcpListener.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
