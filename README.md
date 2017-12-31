@@ -6,6 +6,7 @@ The main goal of this project is for an educational purpose, and to practice cpp
 
 ### Prerequisites
 * Visual Studio 2015
+* Boost 1.65.0
 * Python
 
 ## Compile and Deployment:

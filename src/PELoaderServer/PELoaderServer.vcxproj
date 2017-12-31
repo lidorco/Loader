@@ -126,7 +126,6 @@
   <ItemGroup>
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="LocalDllLoader.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="PeDeserializer.cpp" />
     <ClCompile Include="RemoteDllLoader.cpp" />
     <ClCompile Include="RemoteModules.cpp" />
