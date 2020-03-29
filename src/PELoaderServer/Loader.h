@@ -18,9 +18,9 @@ private:
 	DWORD m_allocated_base_address;
 
 	int allocateMemory();
-	int loadSections();
-	int handleRelocations();
+	int loadSections() const;
+	int handleRelocations() const;
 	int resolveImports();
-	int protectMemory();
-	DWORD getImportedFunctionAddress(char*, char*);
+	int protectMemory() const;
+	static DWORD getImportedFunctionAddress(char*, char*);
 };
