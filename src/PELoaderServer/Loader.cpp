@@ -19,7 +19,7 @@ int Loader::load()
 	return 0;
 }
 
-int Loader::attach() const
+int Loader::attach()
 {
 	const auto entry = reinterpret_cast<DllEntryProc>(m_allocated_base_address + m_pe_file->nt_header.OptionalHeader.AddressOfEntryPoint);
 	(*entry)(reinterpret_cast<HINSTANCE>(m_allocated_base_address), DLL_PROCESS_ATTACH, 0);

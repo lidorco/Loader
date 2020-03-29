@@ -10,7 +10,7 @@ class Loader {
 public:
 	Loader(PeFile*);
 	int load(); 
-	int attach() const;
+	int attach();
 	PDWORD getLoadedFunctionByName(char*) const;
 
 private:

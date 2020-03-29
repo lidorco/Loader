@@ -8,11 +8,11 @@ class PeDeserializer {
 public:
 	PeDeserializer(byte *, PeFile*);
 	PeFile* deserialize();
-	PeFile* getPeFile();
+	PeFile* getPeFile() const;
 private:
 	PeFile* m_pe_file;
 
-	bool dosHeaderDeserialize();
+	bool dosHeaderDeserialize() const;
 	bool ntHeaderDeserialize();
 	bool fileHeaderDeserialize();
 	bool optionalHeaderDeserialize();

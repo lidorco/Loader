@@ -3,10 +3,10 @@
 #include "Debug.h"
 
 
-PeDeserializer::PeDeserializer(byte * pe_raw_data, PeFile* pe_obj)
+PeDeserializer::PeDeserializer(byte * peRawData, PeFile* peObject)
 {
-	m_pe_file = pe_obj;
-	m_pe_file->pe_raw = pe_raw_data;
+	m_pe_file = peObject;
+	m_pe_file->pe_raw = peRawData;
 }
 
 PeFile* PeDeserializer::deserialize()
@@ -19,7 +19,7 @@ PeFile* PeDeserializer::deserialize()
 	return getPeFile();
 }
 
-bool PeDeserializer::dosHeaderDeserialize()
+bool PeDeserializer::dosHeaderDeserialize() const
 {
 	memcpy(&(m_pe_file->dos_header.e_magic), m_pe_file->pe_raw, sizeof(m_pe_file->dos_header));
 	return true;
@@ -55,7 +55,7 @@ bool PeDeserializer::optionalHeaderDeserialize()
 
 bool PeDeserializer::sectionsHeadersDeserialize()
 {
-	for (int i = 0; i < m_pe_file->number_of_sections; ++i) 
+	for (auto i = 0; i < m_pe_file->number_of_sections; ++i) 
 	{
 		memcpy(&(m_pe_file->sections_headers[i]),
 			m_pe_file->pe_raw + m_pe_file->dos_header.e_lfanew + sizeof(m_pe_file->nt_header.Signature) +
@@ -66,7 +66,7 @@ bool PeDeserializer::sectionsHeadersDeserialize()
 	return true;
 }
 
-PeFile* PeDeserializer::getPeFile()
+PeFile* PeDeserializer::getPeFile() const
 {
 	return m_pe_file;
 }
