@@ -5,46 +5,45 @@
 Loader::Loader(PeFile* pe_obj)
 {
 	LOG("Loader created");
-	allocated_base_addr_ = NULL;
-	pe_file_ = pe_obj;
+	m_allocated_base_address = NULL;
+	m_pe_file = pe_obj;
 }
 
-int Loader::Load()
+int Loader::load()
 {
-	AllocateMemory();
-	LoadSections();
-	HandleRelocations();
-	ResolveImports();
-	ProtectMemory();
+	allocateMemory();
+	loadSections();
+	handleRelocations();
+	resolveImports();
+	protectMemory();
 	return 0;
 }
 
-int Loader::Attach()
+int Loader::attach()
 {
-	DllEntryProc entry = (DllEntryProc)(allocated_base_addr_ + pe_file_->nt_header.OptionalHeader.AddressOfEntryPoint);
-	(*entry)((HINSTANCE)allocated_base_addr_, DLL_PROCESS_ATTACH, 0);
+	const auto entry = reinterpret_cast<DllEntryProc>(m_allocated_base_address + m_pe_file->nt_header.OptionalHeader.AddressOfEntryPoint);
+	(*entry)(reinterpret_cast<HINSTANCE>(m_allocated_base_address), DLL_PROCESS_ATTACH, 0);
 	return 0;
 }
 
-PDWORD Loader::GetLoudedFunctionByName(char* func_name)
+PDWORD Loader::getLoadedFunctionByName(char* funcName) const
 {
-	IMAGE_DATA_DIRECTORY exports_data_directory =
-		pe_file_->nt_header.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
-	PIMAGE_EXPORT_DIRECTORY current_export = (PIMAGE_EXPORT_DIRECTORY)
-		(exports_data_directory.VirtualAddress + allocated_base_addr_);
-	char* exported_module_name = (char*)(current_export->Name + allocated_base_addr_);
+	const IMAGE_DATA_DIRECTORY exportsDataDirectory =
+		m_pe_file->nt_header.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+	const auto currentExport = reinterpret_cast<PIMAGE_EXPORT_DIRECTORY>(exportsDataDirectory.VirtualAddress + m_allocated_base_address);
+	const auto exportedModuleName = reinterpret_cast<char*>(currentExport->Name + m_allocated_base_address);
 
-	LOG(std::string("current export module name : ") + std::string(exported_module_name));
+	LOG(std::string("current export module name : ") + std::string(exportedModuleName));
 
-	char** functions_names_addresses = (char**)(current_export->AddressOfNames + allocated_base_addr_);
-	int index = -1;
-	for (size_t i = 0; i < current_export->NumberOfFunctions; i++)
+	const auto functionsNamesAddresses = reinterpret_cast<char**>(currentExport->AddressOfNames + m_allocated_base_address);
+	auto index = -1;
+	for (size_t i = 0; i < currentExport->NumberOfFunctions; i++)
 	{
-		char* current_function_name = functions_names_addresses[i] + allocated_base_addr_;
+		auto currentFunctionName = functionsNamesAddresses[i] + m_allocated_base_address;
 
-		LOG(std::string(" current export func name : ") + std::string(current_function_name));
+		LOG(std::string(" current export func name : ") + std::string(currentFunctionName));
 
-		if (!strcmp((const char*)current_function_name, func_name))
+		if (!strcmp(static_cast<const char*>(currentFunctionName), funcName))
 		{
 			index = i;
 			break;
@@ -52,22 +51,22 @@ PDWORD Loader::GetLoudedFunctionByName(char* func_name)
 	}
 	if (-1 == index)
 	{
-		return NULL;
+		return nullptr;
 	}
 
-	PDWORD functions_addresses = (PDWORD)(current_export->AddressOfFunctions + allocated_base_addr_);
-	DWORD current_function_address = functions_addresses[index] + allocated_base_addr_;
+	const auto functionsAddresses = reinterpret_cast<PDWORD>(currentExport->AddressOfFunctions + m_allocated_base_address);
+	const auto currentFunctionAddress = functionsAddresses[index] + m_allocated_base_address;
 
-	return (PDWORD)current_function_address;;
+	return reinterpret_cast<PDWORD>(currentFunctionAddress);;
 }
 
-int Loader::AllocateMemory()
+int Loader::allocateMemory()
 {
-	LPVOID tmp_base_addr_ptr = VirtualAlloc(&(pe_file_->nt_header.OptionalHeader.ImageBase),
-		pe_file_->nt_header.OptionalHeader.SizeOfImage, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-	allocated_base_addr_ = (DWORD)tmp_base_addr_ptr;
+	LPVOID tmpBaseAddressPtr = VirtualAlloc(&(m_pe_file->nt_header.OptionalHeader.ImageBase),
+		m_pe_file->nt_header.OptionalHeader.SizeOfImage, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	m_allocated_base_address = reinterpret_cast<DWORD>(tmpBaseAddressPtr);
 
-	if (tmp_base_addr_ptr == &(pe_file_->nt_header.OptionalHeader.ImageBase))
+	if (tmpBaseAddressPtr == &(m_pe_file->nt_header.OptionalHeader.ImageBase))
 	{
 		return 0;
 	}
@@ -76,105 +75,104 @@ int Loader::AllocateMemory()
 		LOG("Couldn't allocate ImageBase in Loader::AllocateMemory : " + std::to_string(GetLastError())
 		+ " trying random address");
 
-		allocated_base_addr_ = (DWORD)VirtualAlloc(NULL, pe_file_->nt_header.OptionalHeader.SizeOfImage,
-			MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-		if (!allocated_base_addr_)
+		m_allocated_base_address = reinterpret_cast<DWORD>(VirtualAlloc(nullptr, m_pe_file->nt_header.OptionalHeader.SizeOfImage,
+		                                                                MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+		if (!m_allocated_base_address)
 		{
 			LOG("Error occur in Loader::AllocateMemory : " + std::to_string(GetLastError()));
 			return GetLastError();
 		}
 
-		LOG("succeeded allocate random address : " + std::to_string(allocated_base_addr_));
+		LOG("succeeded allocate random address : " + std::to_string(m_allocated_base_address));
 		return 0;
 	}
 }
 
-int Loader::LoadSections()
+int Loader::loadSections() const
 {
-	for (int i = 0; i < pe_file_->number_of_sections; i++)
+	for (auto i = 0; i < m_pe_file->number_of_sections; i++)
 	{
-		_IMAGE_SECTION_HEADER current_section = pe_file_->sections_headers[i];
+		const auto currentSection = m_pe_file->sections_headers[i];
 
-		if (current_section.Characteristics & IMAGE_SCN_MEM_DISCARDABLE)
+		if (currentSection.Characteristics & IMAGE_SCN_MEM_DISCARDABLE)
 		{
 			continue;
 		}
 
-		memcpy((void*)(allocated_base_addr_ + current_section.VirtualAddress),
-			pe_file_->pe_raw + current_section.PointerToRawData,
-			current_section.SizeOfRawData);
+		memcpy(reinterpret_cast<void*>(m_allocated_base_address + currentSection.VirtualAddress),
+			m_pe_file->pe_raw + currentSection.PointerToRawData,
+			currentSection.SizeOfRawData);
 	}
 	return 0;
 }
 
-int Loader::HandleRelocations()
+int Loader::handleRelocations() const
 {
-	if (allocated_base_addr_ == pe_file_->nt_header.OptionalHeader.ImageBase)
+	if (m_allocated_base_address == m_pe_file->nt_header.OptionalHeader.ImageBase)
 	{
 		//module loaded to original address space. no relocation needed.
 		return 0;
 	}
 
-	DWORD delta = allocated_base_addr_ - pe_file_->nt_header.OptionalHeader.ImageBase;
+	const auto delta = m_allocated_base_address - m_pe_file->nt_header.OptionalHeader.ImageBase;
 	LOG("Relocation delta is : " + std::to_string(delta));
 
-	for (int i = 0; i < pe_file_->number_of_sections; i++)
+	for (auto i = 0; i < m_pe_file->number_of_sections; i++)
 	{
-		IMAGE_SECTION_HEADER current_section = pe_file_->sections_headers[i];
-		if (strcmp((const char*)current_section.Name, ".reloc") != 0)
+		const auto currentSection = m_pe_file->sections_headers[i];
+		if (strcmp(reinterpret_cast<const char*>(currentSection.Name), ".reloc") != 0)
 		{
 			continue;
 		}
 
 		//for each reloc block I calculate number of relocations
-		PDWORD current_reloc_block = (PDWORD)
-			((DWORD)pe_file_->pe_raw + (DWORD)current_section.PointerToRawData);
-		bool is_another_reloc_block_exist = true;
+		auto currentRelocBlock = reinterpret_cast<PDWORD>(reinterpret_cast<DWORD>(m_pe_file->pe_raw) + static_cast<DWORD>(currentSection.PointerToRawData));
+		auto isAnotherRelocBlockExist = true;
 
-		DWORD tmp_some_va;
-		DWORD* tmp_some_va_ptr;
-		int raw_data_processed = 0;
-		int raw_data_processed_per_round = 0;
-		while (is_another_reloc_block_exist)
+		DWORD tmpSomeVa;
+		DWORD* tmpSomeVaPtr;
+		int rawDataProcessed = 0;
+		int rawDataProcessedPerRound = 0;
+		while (isAnotherRelocBlockExist)
 		{
-			current_reloc_block = (DWORD*)((DWORD)raw_data_processed_per_round + (DWORD)current_reloc_block);
-			raw_data_processed_per_round = 0;
-			IMAGE_BASE_RELOCATION* current_reloc = (IMAGE_BASE_RELOCATION*)current_reloc_block;
-			int relocationCount = (current_reloc->SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) / sizeof(WORD);
-			raw_data_processed_per_round += sizeof(IMAGE_BASE_RELOCATION);
+			currentRelocBlock = reinterpret_cast<DWORD*>(static_cast<DWORD>(rawDataProcessedPerRound) + reinterpret_cast<DWORD>(currentRelocBlock));
+			rawDataProcessedPerRound = 0;
+			auto* currentReloc = reinterpret_cast<IMAGE_BASE_RELOCATION*>(currentRelocBlock);
+			const int relocationCount = (currentReloc->SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) / sizeof(WORD);
+			rawDataProcessedPerRound += sizeof(IMAGE_BASE_RELOCATION);
 
-			LOG("current reloc block RVA : " + std::to_string(current_reloc->VirtualAddress));
-			LOG("current reloc block SizeOfBlock : " + std::to_string(current_reloc->SizeOfBlock));
+			LOG("current reloc block RVA : " + std::to_string(currentReloc->VirtualAddress));
+			LOG("current reloc block SizeOfBlock : " + std::to_string(currentReloc->SizeOfBlock));
 			LOG("number of reloc : " + std::to_string(relocationCount));
 
 			for (size_t i = 0; i < relocationCount; i++)
 			{
-				DWORD TypeOffset = (DWORD)current_reloc + i * sizeof(WORD) + sizeof(IMAGE_BASE_RELOCATION);
-				WORD* fixedSizeTypeOffset = (WORD*)TypeOffset;
-				int reloc_type = (*fixedSizeTypeOffset) >> 12;
-				if (reloc_type == IMAGE_REL_BASED_HIGHLOW)
+				const auto typeOffset = reinterpret_cast<DWORD>(currentReloc) + i * sizeof(WORD) + sizeof(IMAGE_BASE_RELOCATION);
+				const auto fixedSizeTypeOffset = reinterpret_cast<WORD*>(typeOffset);
+				const int relocType = (*fixedSizeTypeOffset) >> 12;
+				if (relocType == IMAGE_REL_BASED_HIGHLOW)
 				{
-					tmp_some_va = allocated_base_addr_ +
-						current_reloc->VirtualAddress + ((*fixedSizeTypeOffset) & 4095);
+					tmpSomeVa = m_allocated_base_address +
+						currentReloc->VirtualAddress + ((*fixedSizeTypeOffset) & 4095);
 
-					tmp_some_va_ptr = (DWORD*)tmp_some_va;
+					tmpSomeVaPtr = reinterpret_cast<DWORD*>(tmpSomeVa);
 
-					*tmp_some_va_ptr += delta;
+					*tmpSomeVaPtr += delta;
 				}
-				raw_data_processed_per_round += sizeof(WORD);
+				rawDataProcessedPerRound += sizeof(WORD);
 
 			}
 
-			raw_data_processed += raw_data_processed_per_round;
-			if (raw_data_processed % sizeof(DWORD))
+			rawDataProcessed += rawDataProcessedPerRound;
+			if (rawDataProcessed % sizeof(DWORD))
 			{
-				raw_data_processed_per_round += sizeof(WORD);
-				raw_data_processed += sizeof(WORD);
+				rawDataProcessedPerRound += sizeof(WORD);
+				rawDataProcessed += sizeof(WORD);
 			}
-			DWORD* TestForEnd = (DWORD*)((DWORD)current_reloc_block + (DWORD)raw_data_processed_per_round);
-			if (!*TestForEnd)//need another check for end of reloc sec if 4 bytes == 0 then end
+			const auto testForEnd = reinterpret_cast<DWORD*>(reinterpret_cast<DWORD>(currentRelocBlock) + static_cast<DWORD>(rawDataProcessedPerRound));
+			if (!*testForEnd)//need another check for end of reloc sec if 4 bytes == 0 then end
 			{
-				is_another_reloc_block_exist = false;
+				isAnotherRelocBlockExist = false;
 			}
 		}
 
@@ -183,32 +181,32 @@ int Loader::HandleRelocations()
 	return 0;
 }
 
-int Loader::ResolveImports()
+int Loader::resolveImports()
 {
-	IMAGE_DATA_DIRECTORY imports_data_directory =
-		pe_file_->nt_header.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+	const auto importsDataDirectory =
+		m_pe_file->nt_header.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
 
-	DWORD current_data_dir_location = imports_data_directory.VirtualAddress + allocated_base_addr_;
+	const auto currentDataDirLocation = importsDataDirectory.VirtualAddress + m_allocated_base_address;
 
-	DWORD end_of_data_directory =
-		allocated_base_addr_ + imports_data_directory.VirtualAddress + imports_data_directory.Size;
+	const auto endOfDataDirectory =
+		m_allocated_base_address + importsDataDirectory.VirtualAddress + importsDataDirectory.Size;
 
-	PIMAGE_IMPORT_DESCRIPTOR current_import = (PIMAGE_IMPORT_DESCRIPTOR)current_data_dir_location;
-	while (current_data_dir_location < end_of_data_directory)
+	auto currentImport = reinterpret_cast<PIMAGE_IMPORT_DESCRIPTOR>(currentDataDirLocation);
+	while (currentDataDirLocation < endOfDataDirectory)
 	{
-		if (!current_import->Characteristics) //check for the end of IMAGE_IMPORT_DESCRIPTOR array
+		if (!currentImport->Characteristics) //check for the end of IMAGE_IMPORT_DESCRIPTOR array
 		{
 			break;
 		}
-		char* imported_module_name = (char*)(current_import->Name + allocated_base_addr_);
+		auto imported_module_name = reinterpret_cast<char*>(currentImport->Name + m_allocated_base_address);
 		LOG(std::string("current import module name : ") + std::string(imported_module_name));
 
-		PDWORD hint_name_arr = (PDWORD)(current_import->Characteristics + allocated_base_addr_);
+		auto hint_name_arr = reinterpret_cast<PDWORD>(currentImport->Characteristics + m_allocated_base_address);
 		for (int i = 0; hint_name_arr; hint_name_arr++, i++)
 		{
-			DWORD current_function_name = ((*hint_name_arr) + allocated_base_addr_);
-			WORD hint = (WORD)(*(PDWORD)current_function_name);
-			char* func_name = (char*)(PDWORD)(current_function_name + sizeof(WORD));
+			const auto currentFunctionName = ((*hint_name_arr) + m_allocated_base_address);
+			const auto hint = static_cast<WORD>(*reinterpret_cast<PDWORD>(currentFunctionName));
+			const auto functionName = reinterpret_cast<char*>(reinterpret_cast<PDWORD>(currentFunctionName + sizeof(WORD)));
 
 			if (!hint)
 			{
@@ -216,97 +214,97 @@ int Loader::ResolveImports()
 				break;
 			}
 
-			DWORD current_loaded_func_add = current_import->FirstThunk + i * sizeof(current_import->FirstThunk) 
-				+ allocated_base_addr_;
-			*(PDWORD)current_loaded_func_add = GetImportedFunctionAddress(imported_module_name, func_name);
+			const auto currentLoadedFunctionAddress = currentImport->FirstThunk + i * sizeof(currentImport->FirstThunk) 
+				+ m_allocated_base_address;
+			*reinterpret_cast<PDWORD>(currentLoadedFunctionAddress) = getImportedFunctionAddress(imported_module_name, functionName);
 #ifdef DEBUG
-			if (*(PDWORD)current_loaded_func_add)
+			if (*reinterpret_cast<PDWORD>(currentLoadedFunctionAddress))
 			{
-				LOG(std::string(" current import func name :") + std::to_string(hint) + " : " + std::string(func_name)
-				 + " loaded success " + std::to_string(*(PDWORD)current_loaded_func_add));
+				LOG(std::string(" current import func name :") + std::to_string(hint) + " : " + std::string(functionName)
+				 + " loaded success " + std::to_string(*reinterpret_cast<PDWORD>(currentLoadedFunctionAddress)));
 			}
 			else
 			{
-				LOG(std::string(" current import func name :") + std::to_string(hint) + " : " + std::string(func_name)
+				LOG(std::string(" current import func name :") + std::to_string(hint) + " : " + std::string(functionName)
 					+ " loaded FAILED ");
 			}
 #endif // DEBUG
 		}
 
-		current_import = (PIMAGE_IMPORT_DESCRIPTOR)((DWORD)current_import + sizeof(IMAGE_IMPORT_DESCRIPTOR));
+		currentImport = reinterpret_cast<PIMAGE_IMPORT_DESCRIPTOR>(reinterpret_cast<DWORD>(currentImport) + sizeof(IMAGE_IMPORT_DESCRIPTOR));
 	}
 
 	return 0;
 }
 
-int Loader::ProtectMemory()
+int Loader::protectMemory() const
 {
-	PDWORD old_protect = new DWORD;
-	for (int i = 0; i < pe_file_->number_of_sections; i++)
+	const auto oldProtect = new DWORD;
+	for (auto i = 0; i < m_pe_file->number_of_sections; i++)
 	{
-		_IMAGE_SECTION_HEADER current_section = pe_file_->sections_headers[i];
-		if (current_section.Characteristics & IMAGE_SCN_MEM_DISCARDABLE)
+		const auto currentSection = m_pe_file->sections_headers[i];
+		if (currentSection.Characteristics & IMAGE_SCN_MEM_DISCARDABLE)
 		{
 			continue;
 		}
 
-		if (current_section.Characteristics & IMAGE_SCN_MEM_EXECUTE
-			&& current_section.Characteristics & IMAGE_SCN_MEM_READ
-			&& current_section.Characteristics & IMAGE_SCN_MEM_WRITE)
+		if (currentSection.Characteristics & IMAGE_SCN_MEM_EXECUTE
+			&& currentSection.Characteristics & IMAGE_SCN_MEM_READ
+			&& currentSection.Characteristics & IMAGE_SCN_MEM_WRITE)
 		{
-			VirtualProtect((void*)((allocated_base_addr_) + current_section.VirtualAddress),
-				current_section.SizeOfRawData, PAGE_EXECUTE_READWRITE, old_protect);
+			VirtualProtect(reinterpret_cast<void*>((m_allocated_base_address) + currentSection.VirtualAddress),
+				currentSection.SizeOfRawData, PAGE_EXECUTE_READWRITE, oldProtect);
 		}
 
-		else if (current_section.Characteristics & IMAGE_SCN_MEM_WRITE
-			&& current_section.Characteristics & IMAGE_SCN_MEM_READ)
+		else if (currentSection.Characteristics & IMAGE_SCN_MEM_WRITE
+			&& currentSection.Characteristics & IMAGE_SCN_MEM_READ)
 		{
-			VirtualProtect((void*)((allocated_base_addr_) + current_section.VirtualAddress),
-				current_section.SizeOfRawData, PAGE_READWRITE, old_protect);
+			VirtualProtect(reinterpret_cast<void*>((m_allocated_base_address) + currentSection.VirtualAddress),
+				currentSection.SizeOfRawData, PAGE_READWRITE, oldProtect);
 		}
 
-		else if (current_section.Characteristics & IMAGE_SCN_MEM_EXECUTE
-			&& current_section.Characteristics & IMAGE_SCN_MEM_READ)
+		else if (currentSection.Characteristics & IMAGE_SCN_MEM_EXECUTE
+			&& currentSection.Characteristics & IMAGE_SCN_MEM_READ)
 		{
-			VirtualProtect((void*)((allocated_base_addr_) + current_section.VirtualAddress),
-				current_section.SizeOfRawData, PAGE_EXECUTE_READ, old_protect);
+			VirtualProtect(reinterpret_cast<void*>((m_allocated_base_address) + currentSection.VirtualAddress),
+				currentSection.SizeOfRawData, PAGE_EXECUTE_READ, oldProtect);
 		}
 
-		else if (current_section.Characteristics & IMAGE_SCN_MEM_EXECUTE
-			&& current_section.Characteristics & IMAGE_SCN_MEM_WRITE)
+		else if (currentSection.Characteristics & IMAGE_SCN_MEM_EXECUTE
+			&& currentSection.Characteristics & IMAGE_SCN_MEM_WRITE)
 		{
-			VirtualProtect((void*)((allocated_base_addr_) + current_section.VirtualAddress),
-				current_section.SizeOfRawData, PAGE_EXECUTE_WRITECOPY, old_protect);
+			VirtualProtect(reinterpret_cast<void*>((m_allocated_base_address) + currentSection.VirtualAddress),
+				currentSection.SizeOfRawData, PAGE_EXECUTE_WRITECOPY, oldProtect);
 		}
 
-		else if (current_section.Characteristics & IMAGE_SCN_MEM_EXECUTE)
+		else if (currentSection.Characteristics & IMAGE_SCN_MEM_EXECUTE)
 		{
-			VirtualProtect((void*)((allocated_base_addr_) + current_section.VirtualAddress),
-				current_section.SizeOfRawData, PAGE_EXECUTE, old_protect);
+			VirtualProtect(reinterpret_cast<void*>((m_allocated_base_address) + currentSection.VirtualAddress),
+				currentSection.SizeOfRawData, PAGE_EXECUTE, oldProtect);
 		}
 
-		else if (current_section.Characteristics & IMAGE_SCN_MEM_READ)
+		else if (currentSection.Characteristics & IMAGE_SCN_MEM_READ)
 		{
-			VirtualProtect((void*)((allocated_base_addr_) + current_section.VirtualAddress),
-				current_section.SizeOfRawData, PAGE_READONLY, old_protect);
+			VirtualProtect(reinterpret_cast<void*>((m_allocated_base_address) + currentSection.VirtualAddress),
+				currentSection.SizeOfRawData, PAGE_READONLY, oldProtect);
 		}
 
-		else if (current_section.Characteristics & IMAGE_SCN_MEM_WRITE)
+		else if (currentSection.Characteristics & IMAGE_SCN_MEM_WRITE)
 		{
-			VirtualProtect((void*)((allocated_base_addr_) + current_section.VirtualAddress),
-				current_section.SizeOfRawData, PAGE_WRITECOPY, old_protect);
+			VirtualProtect(reinterpret_cast<void*>((m_allocated_base_address) + currentSection.VirtualAddress),
+				currentSection.SizeOfRawData, PAGE_WRITECOPY, oldProtect);
 		}
 
 	}
 	return 0;
 }
 
-DWORD Loader::GetImportedFunctionAddress(char* module_name, char* func_name)
+DWORD Loader::getImportedFunctionAddress(char* moduleName, char* functionName)
 {
-	HINSTANCE get_proc_id_dll = LoadLibraryA(module_name);
-	if (!get_proc_id_dll)
+	const auto getProcIdDll = LoadLibraryA(moduleName);
+	if (!getProcIdDll)
 	{
 		return NULL;
 	}
-	return (DWORD)GetProcAddress(get_proc_id_dll, func_name);
+	return reinterpret_cast<DWORD>(GetProcAddress(getProcIdDll, functionName));
 }

@@ -2,45 +2,42 @@
 #include "TcpListener.h"
 #include "Debug.h"
 
-#ifndef __STRINGS_H_INCLUDED__
-#define __STRINGS_H_INCLUDED__
 #include <string>
-#endif // __STRINGS_H_INCLUDED__
 
-TcpListener::TcpListener(int port) : listening_port_(port), listen_socket_(INVALID_SOCKET)
+TcpListener::TcpListener(const int port) : m_listening_port(port), m_listen_socket(INVALID_SOCKET)
 {
 	LOG("TcpListener created");
 }
 
-void TcpListener::Initialize()
+void TcpListener::initialize()
 {
-	WSAStartup(MAKEWORD(2, 2), &(wsa_data_));
+	WSAStartup(MAKEWORD(2, 2), &(m_wsa_data));
 
-	std::string tmp_str_listen_port = std::to_string(listening_port_);
-	PCSTR str_listenning_port = tmp_str_listen_port.c_str();
+	std::string tmpStrListenPort = std::to_string(m_listening_port);
+	const auto strListenningPort = tmpStrListenPort.c_str();
 	struct addrinfo hints;
-	struct addrinfo *result = NULL;
+	struct addrinfo *result = nullptr;
 	ZeroMemory(&hints, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
-	getaddrinfo(NULL, str_listenning_port, &hints, &result);
+	getaddrinfo(nullptr, strListenningPort, &hints, &result);
 
-	listen_socket_ = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-	bind(listen_socket_, result->ai_addr, (int)result->ai_addrlen);
+	m_listen_socket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+	bind(m_listen_socket, result->ai_addr, static_cast<int>(result->ai_addrlen));
 
 	freeaddrinfo(result);
 }
 
 
-bool TcpListener::Listen() 
+bool TcpListener::tcpListen() 
 {
-	Initialize();
+	initialize();
 
-	LOG("TcpListener started listenning on port " + std::to_string(listening_port_));
-	int return_value = listen(listen_socket_, SOMAXCONN);
-	if (return_value)
+	LOG("TcpListener started listenning on port " + std::to_string(m_listening_port));
+	const auto returnValue = listen(m_listen_socket, SOMAXCONN);
+	if (returnValue)
 	{
 		LOG("Error occurred trying to listening in TcpListener");
 		return false;
@@ -49,20 +46,20 @@ bool TcpListener::Listen()
 }
 
 
-byte* TcpListener::Accept() 
+byte* TcpListener::tcpAccept() 
 {
 	SOCKET client_socket = INVALID_SOCKET;
-	client_socket = accept(listen_socket_, NULL, NULL);
-	closesocket(listen_socket_);
+	client_socket = accept(m_listen_socket, nullptr, nullptr);
+	closesocket(m_listen_socket);
 	LOG("TcpListener accepted client");
 	
 	// Receive until the peer shuts down the connection
-	HANDLE process_heap = GetProcessHeap();
-	HANDLE recvbuf = HeapAlloc(process_heap, HEAP_ZERO_MEMORY, DEFAULT_BUFFER_LENGTH);
-	recv(client_socket, (char*)recvbuf, DEFAULT_BUFFER_LENGTH, 0);
+	const auto processHeap = GetProcessHeap();
+	const auto receivedBuffer = HeapAlloc(processHeap, HEAP_ZERO_MEMORY, DEFAULT_BUFFER_LENGTH);
+	recv(client_socket, static_cast<char*>(receivedBuffer), DEFAULT_BUFFER_LENGTH, 0);
 
 	shutdown(client_socket, SD_SEND);
 	closesocket(client_socket);
 	WSACleanup();
-	return (byte*)recvbuf;
+	return static_cast<byte*>(receivedBuffer);
 }

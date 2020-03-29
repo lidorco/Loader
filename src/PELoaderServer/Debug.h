@@ -1,9 +1,6 @@
 #pragma once
 
-#ifndef __STRINGS_H_INCLUDED__
-#define __STRINGS_H_INCLUDED__
 #include <string>
-#endif // __STRINGS_H_INCLUDED__
 
 #define DEBUG
 
@@ -16,9 +13,9 @@
 
 class Debug {
 public:
-	void log(const std::string&, const std::string&, const int);
-	void log(const std::string&);
-	void log(const int);
+	static void log(const std::string&, const std::string&, const int);
+	static void log(const std::string&);
+	static void log(const int);
 };
 
 extern Debug logger;

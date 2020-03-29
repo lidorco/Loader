@@ -15,29 +15,28 @@ int main()
 {
 	LOG("main started");
 
-	TcpListener* server = new TcpListener(9999);
-	if (!server->Listen())
+	auto server = new TcpListener(9999);
+	if (!server->tcpListen())
 	{
 		return 0;
 	};
-	byte* raw_module = server->Accept();
+	const auto rawModule = server->tcpAccept();
 
-	PeFile* some_pe_file = new PeFile;
-	PeDeserializer* deserializer = new PeDeserializer(raw_module, some_pe_file);
-	some_pe_file = deserializer->Deserialize();
+	auto somePeFile = new PeFile;
+	auto deserializer = new PeDeserializer(rawModule, somePeFile);
+	somePeFile = deserializer->deserialize();
 
-	Loader* loader = new Loader(some_pe_file);
-	loader->Load();
-	loader->Attach();
-	
-	PDWORD print_func = loader->GetLoudedFunctionByName("print");
-	PRINT printImportedFunc = (PRINT)print_func;
-	printImportedFunc();
-	ADD addImportedFunc = (ADD)loader->GetLoudedFunctionByName("add");
-	int ret = addImportedFunc(8, 2);
+	auto loader = new Loader(somePeFile);
+	loader->load();
+	loader->attach();
+
+	auto printFunction = reinterpret_cast<PRINT>(loader->getLoadedFunctionByName("print"));
+	printFunction();
+	auto addFunction = reinterpret_cast<ADD>(loader->getLoadedFunctionByName("add"));
+	int ret = addFunction(8, 2);
 	LOG("addImportedFunc return: " + std::to_string(ret));
-	MULT multImportedFunc = (MULT)loader->GetLoudedFunctionByName("multiplication");
-	ret = multImportedFunc(8, 2);
+	auto multFunction = reinterpret_cast<MULT>(loader->getLoadedFunctionByName("multiplication"));
+	ret = multFunction(8, 2);
 	LOG("multImportedFunc return: " + std::to_string(ret));
 
 	LOG("main ended");

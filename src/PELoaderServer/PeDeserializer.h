@@ -7,14 +7,14 @@ class PeDeserializer {
 
 public:
 	PeDeserializer(byte *, PeFile*);
-	PeFile* Deserialize();
-	PeFile* GetPeFile();
+	PeFile* deserialize();
+	PeFile* getPeFile() const;
 private:
-	PeFile* pe_file_;
+	PeFile* m_pe_file;
 
-	bool DosHeaderDeserialize();
-	bool NtHeaderDeserialize();
-	bool FileHeaderDeserialize();
-	bool OptionalHeaderDeserialize();
-	bool SectionsHeadersDeserialize();
+	bool dosHeaderDeserialize() const;
+	bool ntHeaderDeserialize();
+	bool fileHeaderDeserialize();
+	bool optionalHeaderDeserialize();
+	bool sectionsHeadersDeserialize();
 };

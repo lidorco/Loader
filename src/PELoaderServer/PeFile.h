@@ -1,9 +1,6 @@
 #pragma once
 
-#ifndef __WINDOWS_H_INCLUDED__
-#define __WINDOWS_H_INCLUDED__
-#include <windows.h>
-#endif // __WINDOWS_H_INCLUDED__ 
+#include <Windows.h>
 
 
 struct PeFile {
