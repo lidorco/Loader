@@ -1,9 +1,6 @@
 #pragma once
 
-#ifndef __STRINGS_H_INCLUDED__
-#define __STRINGS_H_INCLUDED__
 #include <string>
-#endif // __STRINGS_H_INCLUDED__
 
 #define DEBUG
 

@@ -2,25 +2,25 @@
 
 #include "PeFile.h"
 
-typedef BOOL(WINAPI *DllEntryProc)(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
+typedef BOOL(WINAPI *DllEntryProc)(HINSTANCE hinstDll, DWORD fdwReason, LPVOID lpReserved);
 
 
 class Loader {
 
 public:
 	Loader(PeFile*);
-	int Load(); 
-	int Attach();
-	PDWORD GetLoudedFunctionByName(char*);
+	int load(); 
+	int attach() const;
+	PDWORD getLoadedFunctionByName(char*) const;
 
 private:
-	PeFile* pe_file_;
-	DWORD allocated_base_addr_;
+	PeFile* m_pe_file;
+	DWORD m_allocated_base_address;
 
-	int AllocateMemory();
-	int LoadSections();
-	int HandleRelocations();
-	int ResolveImports();
-	int ProtectMemory();
-	DWORD GetImportedFunctionAddress(char*, char*);
+	int allocateMemory();
+	int loadSections();
+	int handleRelocations();
+	int resolveImports();
+	int protectMemory();
+	DWORD getImportedFunctionAddress(char*, char*);
 };

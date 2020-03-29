@@ -1,9 +1,6 @@
 #include "Debug.h"
 
-#ifndef __IOSTREAM_H_INCLUDED__
-#define __IOSTREAM_H_INCLUDED__
 #include <iostream>
-#endif // __IOSTREAM_H_INCLUDED__
 
 
 void Debug::log(const std::string& log_msg)
