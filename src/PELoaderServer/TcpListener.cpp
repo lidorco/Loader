@@ -56,7 +56,8 @@ byte* TcpListener::tcpAccept()
 	// Receive until the peer shuts down the connection
 	const auto processHeap = GetProcessHeap();
 	const auto receivedBuffer = HeapAlloc(processHeap, HEAP_ZERO_MEMORY, DEFAULT_BUFFER_LENGTH);
-	recv(client_socket, static_cast<char*>(receivedBuffer), DEFAULT_BUFFER_LENGTH, 0);
+	auto numberOfBytesReceived = recv(client_socket, static_cast<char*>(receivedBuffer), DEFAULT_BUFFER_LENGTH, 0);
+	LOG("Number of bytes received " + std::to_string(numberOfBytesReceived));
 
 	shutdown(client_socket, SD_SEND);
 	closesocket(client_socket);

@@ -1,6 +1,7 @@
 LIBRARY testdll
 DESCRIPTION "testdll"
 EXPORTS
-   add @1
-   multiplication @2
-   print @3
+   testFunction @1
+   add @2
+   multiplication @3
+   
