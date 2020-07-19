@@ -23,4 +23,5 @@ private:
 	int resolveImports();
 	int protectMemory() const;
 	static DWORD getImportedFunctionAddress(char*, char*);
+	int handleSeh() const;
 };

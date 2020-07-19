@@ -19,7 +19,7 @@ int main()
 	if (!server->tcpListen())
 	{
 		return 0;
-	};
+	}
 	const auto rawModule = server->tcpAccept();
 
 	auto somePeFile = new PeFile;
@@ -30,14 +30,8 @@ int main()
 	loader->load();
 	loader->attach();
 
-	auto printFunction = reinterpret_cast<PRINT>(loader->getLoadedFunctionByName("print"));
+	auto printFunction = reinterpret_cast<PRINT>(loader->getLoadedFunctionByName("testFunction"));
 	printFunction();
-	auto addFunction = reinterpret_cast<ADD>(loader->getLoadedFunctionByName("add"));
-	int ret = addFunction(8, 2);
-	LOG("addImportedFunc return: " + std::to_string(ret));
-	auto multFunction = reinterpret_cast<MULT>(loader->getLoadedFunctionByName("multiplication"));
-	ret = multFunction(8, 2);
-	LOG("multImportedFunc return: " + std::to_string(ret));
 
 	LOG("main ended");
 	return 0;

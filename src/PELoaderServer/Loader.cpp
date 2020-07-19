@@ -15,6 +15,7 @@ int Loader::load()
 	loadSections();
 	handleRelocations();
 	resolveImports();
+	handleSeh();
 	protectMemory();
 	return 0;
 }
@@ -307,4 +308,30 @@ DWORD Loader::getImportedFunctionAddress(char* moduleName, char* functionName)
 		return NULL;
 	}
 	return reinterpret_cast<DWORD>(GetProcAddress(getProcIdDll, functionName));
+}
+
+
+int Loader::handleSeh() const
+{
+	// Check for SEH in 32 bit PE:
+	if (m_pe_file->nt_header.OptionalHeader.DllCharacteristics & IMAGE_DLLCHARACTERISTICS_NO_SEH)
+	{
+		LOG(std::string(" IMAGE_DLLCHARACTERISTICS_NO_SEH is set"));
+	}
+	else
+	{
+	LOG(std::string(" IMAGE_DLLCHARACTERISTICS_NO_SEH is NOT set"));
+	}
+	
+	// Check SEH table size:
+	const auto configDataDirectory = m_pe_file->nt_header.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG];
+	const auto currentConfigDataDirectory = configDataDirectory.VirtualAddress + m_allocated_base_address;
+	auto configDirectory = reinterpret_cast<PIMAGE_LOAD_CONFIG_DIRECTORY32>(currentConfigDataDirectory);
+	LOG(std::string(" configDirectory->SEHandlerCount :") + std::to_string(configDirectory->SEHandlerCount));
+	LOG(std::string(" configDirectory->SEHandlerTable :") + std::to_string(configDirectory->SEHandlerTable));
+
+
+	// todo: parse seh table
+	
+	return 0;
 }
