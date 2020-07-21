@@ -1,23 +1,37 @@
 
-#include <iostream>
 #include <windows.h>
 
 
-__declspec(dllexport) void print()
+size_t strlen(char* str)
 {
-	std::cout << "TestDll::print Running successfully" << std::endl;
+	char* s;
+	for (s = str; *s; ++s);
+	return (s - str);
 }
 
 
-__declspec(dllexport) int add(int a, int b)
+void printf(char* message)
 {
-	std::cout << "TestDll::add Running successfully" << std::endl;
+	auto console = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD out = 0;
+	auto result = WriteConsoleA(console, message, strlen(message), &out, nullptr);
+}
+
+void testFunction()
+{
+	printf("TestDll::testFunction Running successfully\n");
+}
+
+
+int add(int a, int b)
+{
+	printf("TestDll::add Running successfully\n");
 	return a + b;
 }
 
-__declspec(dllexport) int multiplication(int a, int b)
+int multiplication(int a, int b)
 {
-	std::cout << "TestDll::multiplication Running successfully" << std::endl;
+	printf("TestDll::multiplication Running successfully\n");
 	return a * b;
 }
 
@@ -27,19 +41,19 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 	switch (fdwReason)
 	{
 	case DLL_PROCESS_ATTACH:
-		std::cout << "TestDll::DllMain - reason is DLL_PROCESS_ATTACH" << std::endl;
+		printf("TestDll::DllMain - reason is DLL_PROCESS_ATTACH\n");
 		break;
 
 	case DLL_THREAD_ATTACH:
-		std::cout << "TestDll::DllMain - reason is DLL_THREAD_ATTACH" << std::endl;
+		printf ("TestDll::DllMain - reason is DLL_THREAD_ATTACH\n");
 		break;
 
 	case DLL_THREAD_DETACH:
-		std::cout << "TestDll::DllMain - reason is DLL_THREAD_DETACH" << std::endl;
+		printf ("TestDll::DllMain - reason is DLL_THREAD_DETACH\n");
 		break;
 
 	case DLL_PROCESS_DETACH:
-		std::cout << "TestDll::DllMain - reason is DLL_PROCESS_DETACH" << std::endl;
+		printf("TestDll::DllMain - reason is DLL_PROCESS_DETACH\n");
 		break;
 	}
 	return TRUE;

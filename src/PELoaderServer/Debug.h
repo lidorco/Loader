@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sstream>
 #include <string>
 
 #define DEBUG
@@ -19,3 +20,12 @@ public:
 };
 
 extern Debug logger;
+
+template <class T>
+std::string to_hexstring(T t)
+{
+	std::stringstream sstream;
+	sstream << "0x" << std::hex << t;
+	std::string result = sstream.str();
+	return result;
+}
