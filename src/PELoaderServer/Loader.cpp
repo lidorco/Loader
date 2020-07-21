@@ -1,6 +1,7 @@
 
 #include "Loader.h"
 #include "Debug.h"
+#include "Seh.h"
 
 Loader::Loader(PeFile* pe_obj)
 {
@@ -14,8 +15,7 @@ int Loader::load()
 	allocateMemory();
 	loadSections();
 	handleRelocations();
-	resolveImports();
-	handleSeh();
+	resolveImports();	
 	protectMemory();
 	return 0;
 }
@@ -27,7 +27,7 @@ int Loader::attach()
 	return 0;
 }
 
-PDWORD Loader::getLoadedFunctionByName(char* funcName) const
+PDWORD Loader::getLoadedFunctionByName(char* funcName)
 {
 	const IMAGE_DATA_DIRECTORY exportsDataDirectory =
 		m_pe_file->nt_header.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
@@ -61,6 +61,7 @@ PDWORD Loader::getLoadedFunctionByName(char* funcName) const
 	return reinterpret_cast<PDWORD>(currentFunctionAddress);;
 }
 
+
 int Loader::allocateMemory()
 {
 	LPVOID tmpBaseAddressPtr = VirtualAlloc(&(m_pe_file->nt_header.OptionalHeader.ImageBase),
@@ -84,7 +85,7 @@ int Loader::allocateMemory()
 			return GetLastError();
 		}
 
-		LOG("succeeded allocate random address : " + std::to_string(m_allocated_base_address));
+		LOG("succeeded allocate random address : " + to_hexstring(m_allocated_base_address));
 		return 0;
 	}
 }
@@ -116,7 +117,7 @@ int Loader::handleRelocations() const
 	}
 
 	const auto delta = m_allocated_base_address - m_pe_file->nt_header.OptionalHeader.ImageBase;
-	LOG("Relocation delta is : " + std::to_string(delta));
+	LOG("Relocation delta is : " + to_hexstring(delta));
 
 	for (auto i = 0; i < m_pe_file->number_of_sections; i++)
 	{
@@ -310,28 +311,22 @@ DWORD Loader::getImportedFunctionAddress(char* moduleName, char* functionName)
 	return reinterpret_cast<DWORD>(GetProcAddress(getProcIdDll, functionName));
 }
 
+typedef void(*FUNCTION)();
 
-int Loader::handleSeh() const
+void Loader::run(char* exportName)
 {
-	// Check for SEH in 32 bit PE:
-	if (m_pe_file->nt_header.OptionalHeader.DllCharacteristics & IMAGE_DLLCHARACTERISTICS_NO_SEH)
+	if (isSehUsed(*m_pe_file, m_allocated_base_address))
 	{
-		LOG(std::string(" IMAGE_DLLCHARACTERISTICS_NO_SEH is set"));
-	}
-	else
-	{
-	LOG(std::string(" IMAGE_DLLCHARACTERISTICS_NO_SEH is NOT set"));
+		auto recordCount = getAmountOfSehHandler(*m_pe_file, m_allocated_base_address);
+		
+		void* sehRecords = _alloca(sizeof(EXCEPTION_REGISTRATION_RECORD) * recordCount);
+		addToSehChain(sehRecords, *m_pe_file, m_allocated_base_address);
+		hookRtlIsValidHandler(); // to make sure our new seh will be consider "valid"		
 	}
 	
-	// Check SEH table size:
-	const auto configDataDirectory = m_pe_file->nt_header.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG];
-	const auto currentConfigDataDirectory = configDataDirectory.VirtualAddress + m_allocated_base_address;
-	auto configDirectory = reinterpret_cast<PIMAGE_LOAD_CONFIG_DIRECTORY32>(currentConfigDataDirectory);
-	LOG(std::string(" configDirectory->SEHandlerCount :") + std::to_string(configDirectory->SEHandlerCount));
-	LOG(std::string(" configDirectory->SEHandlerTable :") + std::to_string(configDirectory->SEHandlerTable));
+	auto entry = reinterpret_cast<FUNCTION>(getLoadedFunctionByName(exportName));
 
-
-	// todo: parse seh table
-	
-	return 0;
+	printSehChain();
+	LOG(std::string("Running export in thread: ") + to_hexstring(GetThreadId(GetCurrentThread())));
+	entry();
 }

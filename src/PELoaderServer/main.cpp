@@ -28,10 +28,10 @@ int main()
 
 	auto loader = new Loader(somePeFile);
 	loader->load();
-	loader->attach();
 
-	auto printFunction = reinterpret_cast<PRINT>(loader->getLoadedFunctionByName("testFunction"));
-	printFunction();
+	loader->attach();
+	
+	loader->run("testFunction");
 
 	LOG("main ended");
 	return 0;

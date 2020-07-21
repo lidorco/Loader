@@ -30,6 +30,9 @@
     <ClInclude Include="TcpListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Seh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Debug.cpp">
@@ -45,6 +48,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TcpListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Seh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

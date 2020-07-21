@@ -11,7 +11,8 @@ public:
 	Loader(PeFile*);
 	int load(); 
 	int attach();
-	PDWORD getLoadedFunctionByName(char*) const;
+	PDWORD getLoadedFunctionByName(char*);
+	void run(char*);
 
 private:
 	PeFile* m_pe_file;
@@ -23,5 +24,5 @@ private:
 	int resolveImports();
 	int protectMemory() const;
 	static DWORD getImportedFunctionAddress(char*, char*);
-	int handleSeh() const;
 };
+
